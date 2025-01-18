@@ -1,65 +1,64 @@
 <?php
-// Check if the required "PHP Email Form" library exists
-$php_email_form_path = '../assets/vendor/php-email-form/php-email-form.php';
+// Đường dẫn đến thư viện PHP Email Form
+$php_email_form_path = 'assets/vendor/php-email-form/php-email-form.php';
 
-// Replace with your real receiving email address
+// Địa chỉ email nhận thư
 $receiving_email_address = 'hungcuong.fort.it@gmail.com';
 
-// Ensure the email address is set correctly
+// Kiểm tra địa chỉ email nhận có hợp lệ không
 if (!filter_var($receiving_email_address, FILTER_VALIDATE_EMAIL)) {
     die('Invalid receiving email address.');
 }
 
-// Check if the library file exists, and include it if found
+// Kiểm tra và nạp thư viện nếu tồn tại
 if (file_exists($php_email_form_path)) {
     include($php_email_form_path);
 } else {
     die('Unable to load the "PHP Email Form" Library!');
 }
 
-// Create a new instance of PHP_Email_Form
+// Tạo đối tượng PHP_Email_Form
 $contact = new PHP_Email_Form();
 $contact->ajax = true;
 
-// Set the recipient's email address
+// Thiết lập thông tin email nhận
 $contact->to = $receiving_email_address;
 
-// Validate and set form inputs
+// Kiểm tra và xử lý form
 if (!empty($_POST['name']) && !empty($_POST['email']) && !empty($_POST['subject']) && !empty($_POST['message'])) {
-    // Sanitize form inputs to avoid XSS attacks
-    $contact->from_name = htmlspecialchars($_POST['name']);
-    $contact->from_email = htmlspecialchars($_POST['email']);
-    $contact->subject = htmlspecialchars($_POST['subject']);
+    // Lấy dữ liệu từ form và xử lý
+    $contact->from_name = htmlspecialchars(trim($_POST['name']));
+    $contact->from_email = htmlspecialchars(trim($_POST['email']));
+    $contact->subject = htmlspecialchars(trim($_POST['subject']));
+    $message = htmlspecialchars(trim($_POST['message']));
 
-    // Validate the sender's email address
+    // Kiểm tra email gửi đi có hợp lệ không
     if (!filter_var($contact->from_email, FILTER_VALIDATE_EMAIL)) {
         die('Invalid sender email address.');
     }
 
-    // Add the message fields
-    $contact->add_message($_POST['name'], 'From');
-    $contact->add_message($_POST['email'], 'Email');
-    $contact->add_message($_POST['message'], 'Message', 10);
+    // Thêm nội dung tin nhắn
+    $contact->add_message($contact->from_name, 'From');
+    $contact->add_message($contact->from_email, 'Email');
+    $contact->add_message($message, 'Message', 10);
 
-    // Uncomment the block below to use SMTP (ensure SMTP credentials are correct)
-    /*
+    // Cấu hình SMTP
     $contact->smtp = array(
-        'host' => 'smtp.example.com', // Replace with your SMTP server
-        'username' => 'your-smtp-username',
-        'password' => 'your-smtp-password',
-        'port' => '587', // Use 465 for SSL, 587 for TLS
-        'encryption' => 'tls' // Use 'ssl' for SSL encryption
+        'host' => 'smtp.gmail.com',             // SMTP server của Gmail
+        'username' => 'hungcuong.fort.it@gmail.com',  // Email gửi (thay bằng email thực tế)
+        'password' => 'ppjd kjfm vmlo vteo',     // Mật khẩu ứng dụng Gmail (App Password)
+        'port' => '587',                       // TLS: 587, SSL: 465
+        'encryption' => 'tls'                  // TLS hoặc SSL
     );
-    */
 
-    // Send the email and output the result
+    // Gửi email
     if ($contact->send()) {
         echo 'Message sent successfully!';
     } else {
         echo 'Failed to send the message. Please try again.';
     }
 } else {
-    // Handle the case where any of the form fields are empty
+    // Trường hợp không đủ dữ liệu từ form
     die('All fields are required.');
 }
 ?>
